@@ -1,6 +1,6 @@
-# Simuletic
+# simuletic-core
 
-**Simuletic is an open-source Python toolkit for training, evaluating, benchmarking, and running computer vision models with synthetic and real-world datasets.**
+**simuletic-core is an open-source Python toolkit for training, evaluating, benchmarking, and running computer vision models with synthetic and real-world datasets.**
 
 The goal is to help computer vision teams understand whether models trained on synthetic data actually generalize to real-world production conditions.
 
