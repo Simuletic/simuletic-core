@@ -13,6 +13,12 @@ from simuletic.config import (
     ModelConfig,
     load_config,
 )
+from simuletic.datasets import (
+    DatasetIssue,
+    DatasetValidationResult,
+    validate_config_datasets,
+    validate_dataset,
+)
 
 try:
     __version__ = version("simuletic-core")
@@ -25,6 +31,10 @@ __all__ = [
     "ConfigLoadError",
     "ConfigValidationError",
     "ConfigYamlError",
+    "DatasetIssue",
+    "DatasetValidationResult",
+    "validate_config_datasets",
+    "validate_dataset",
     "DatasetConfig",
     "EvaluationConfig",
     "ExperimentConfig",
