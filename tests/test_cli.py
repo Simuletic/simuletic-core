@@ -32,3 +32,21 @@ def test_config_validate_command_fails_clearly_for_invalid_path() -> None:
     assert result.exit_code == 1
     assert "Invalid config" in result.stdout
     assert "Configuration file not found" in result.stdout
+
+
+def test_dataset_validate_command_fails_clearly_for_missing_example_paths() -> None:
+    result = runner.invoke(
+        app,
+        [
+            "dataset",
+            "validate",
+            "--config",
+            "examples/configs/cctv_weapon_detection.yaml",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Dataset validation" in result.stdout
+    assert "FAIL" in result.stdout
+    assert "Dataset path does not exist" in result.stdout
+    assert "synthetic_train" in result.stdout

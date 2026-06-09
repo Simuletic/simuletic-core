@@ -68,6 +68,7 @@ Implemented today:
 * YAML experiment config schema
 * Config loading with Pydantic validation
 * Config validation CLI
+* Lightweight dataset validation for config-defined datasets
 * Basic tests, linting, typing configuration, and GitHub Actions CI
 
 Planned next:
@@ -76,7 +77,6 @@ Planned next:
 * actual evaluation metrics
 * RT-DETR backend integration
 * inference pipeline
-* dataset validation
 * benchmark reports
 * API clients
 * optional ML framework integrations
@@ -131,6 +131,12 @@ Validate the included example experiment config:
 
 ```bash
 simuletic config validate examples/configs/cctv_weapon_detection.yaml
+```
+
+Validate datasets referenced by the example experiment config:
+
+```bash
+simuletic dataset validate --config examples/configs/cctv_weapon_detection.yaml
 ```
 
 Run the test suite and checks:
@@ -194,6 +200,33 @@ simuletic config validate examples/configs/cctv_weapon_detection.yaml
 ```
 
 The validation command only loads and validates the YAML schema. It does **not** train, evaluate, run inference, download models, or invoke heavy ML frameworks.
+
+## Dataset validation
+
+Simuletic Core can also validate datasets referenced by an experiment config before training or evaluation work begins:
+
+```bash
+simuletic dataset validate --config examples/configs/cctv_weapon_detection.yaml
+```
+
+The dataset validation command loads the config, checks each configured dataset, prints a Rich summary with pass/fail status, and exits with a non-zero status if any dataset has blocking errors. The included example config intentionally points at local `./data/...` paths that are not required to exist in this repository, so running the command without creating those datasets will fail clearly.
+
+Currently implemented:
+
+* config validation
+* lightweight dataset validation
+* YOLO object detection dataset checks for `images/` and `labels/` layouts, including split subdirectories such as `images/train`, `images/val`, `labels/train`, and `labels/val`
+* supported image extensions: `.jpg`, `.jpeg`, `.png`, and `.webp`
+* rough YOLO label-line checks for `class_id x_center y_center width height` numeric values
+
+Planned:
+
+* actual training
+* evaluation metrics
+* RT-DETR backend
+* inference pipeline
+
+Dataset validation does **not** download datasets, inspect images with OpenCV or PIL, download models, or invoke heavy ML frameworks.
 
 Supported schema values:
 
