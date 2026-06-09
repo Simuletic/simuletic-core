@@ -1,0 +1,35 @@
+project_name: cctv-weapon-detection
+task: detection
+backend: rtdetr
+
+datasets:
+  synthetic_train:
+    path: ./data/synthetic/train
+    format: yolo
+
+  synthetic_val:
+    path: ./data/synthetic/val
+    format: yolo
+
+  real_world_test:
+    path: ./data/real_world/test
+    format: yolo
+
+  hard_negatives:
+    path: ./data/hard_negatives
+    format: yolo
+
+model:
+  architecture: rtdetr
+  pretrained: true
+  output_dir: ./runs/cctv-weapon-detection
+
+evaluation:
+  metrics:
+    - precision
+    - recall
+    - map50
+    - false_positive_rate
+    - synthetic_to_real_gap
+
+seed: 42

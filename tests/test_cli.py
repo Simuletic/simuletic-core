@@ -11,3 +11,24 @@ def test_version_command_prints_package_version() -> None:
 
     assert result.exit_code == 0
     assert result.stdout.strip() == __version__
+
+
+def test_config_validate_command_prints_summary() -> None:
+    result = runner.invoke(
+        app, ["config", "validate", "examples/configs/cctv_weapon_detection.yaml"]
+    )
+
+    assert result.exit_code == 0
+    assert "Config is valid" in result.stdout
+    assert "Project: cctv-weapon-detection" in result.stdout
+    assert "Task: detection" in result.stdout
+    assert "Backend: rtdetr" in result.stdout
+    assert "synthetic_train" in result.stdout
+
+
+def test_config_validate_command_fails_clearly_for_invalid_path() -> None:
+    result = runner.invoke(app, ["config", "validate", "does-not-exist.yaml"])
+
+    assert result.exit_code == 1
+    assert "Invalid config" in result.stdout
+    assert "Configuration file not found" in result.stdout
