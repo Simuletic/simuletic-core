@@ -12,9 +12,10 @@ This repository is early and intentionally lightweight. The current package prov
 
 Implemented today:
 
-* Python package import name: `simuletic`
-* CLI command: `simuletic`
-* Version command: `simuletic version`
+* Distribution package name: `simuletic-core`
+* Python import package name: `simuletic_core`
+* CLI command: `simuletic-core`
+* Version command: `simuletic-core version`
 * Basic tests, linting, typing configuration, and GitHub Actions CI
 
 Not implemented yet:
@@ -29,19 +30,25 @@ Not implemented yet:
 
 ## Installation
 
-Install locally with pip:
+Install with pip:
 
 ```bash
-pip install .
+pip install simuletic-core
 ```
 
-Or with uv:
+Or install into an environment with uv:
 
 ```bash
-uv pip install .
+uv pip install simuletic-core
 ```
 
-For editable development:
+Or add it to a uv-managed project:
+
+```bash
+uv add simuletic-core
+```
+
+For editable development from this repository:
 
 ```bash
 pip install -e ".[dev]"
@@ -55,10 +62,16 @@ uv pip install -e ".[dev]"
 
 ## Quickstart
 
+Import the package in Python:
+
+```python
+import simuletic_core
+```
+
 Check that the CLI is installed:
 
 ```bash
-simuletic version
+simuletic-core version
 ```
 
 Run the test suite and checks:
