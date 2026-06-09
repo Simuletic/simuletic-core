@@ -1,7 +1,7 @@
 from typer.testing import CliRunner
 
-from simuletic import __version__
-from simuletic.cli import app
+from simuletic_core import __version__
+from simuletic_core.cli import app
 
 runner = CliRunner()
 

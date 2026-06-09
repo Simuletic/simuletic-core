@@ -3,7 +3,7 @@
 import typer
 from rich.console import Console
 
-from simuletic import __version__
+from simuletic_core import __version__
 
 app = typer.Typer(
     add_completion=False,
@@ -20,5 +20,5 @@ def main() -> None:
 
 @app.command("version")
 def version_command() -> None:
-    """Print the installed Simuletic package version."""
+    """Print the installed simuletic-core package version."""
     console.print(__version__)

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "simuletic"
+name = "simuletic-core"
 version = "0.1.0"
 description = "Core Python toolkit for synthetic-to-real computer vision workflows."
 readme = "README.md"
@@ -44,10 +44,10 @@ dev = [
 ]
 
 [project.scripts]
-simuletic = "simuletic.cli:app"
+simuletic-core = "simuletic_core.cli:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/simuletic"]
+packages = ["src/simuletic_core"]
 
 [tool.ruff]
 line-length = 88
