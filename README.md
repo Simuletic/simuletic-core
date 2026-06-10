@@ -1,85 +1,48 @@
 # Simuletic Core
 
-**Simuletic Core is an open-source Python toolkit for training, evaluating, benchmarking, and running computer vision models with synthetic and real-world datasets.**
+`simuletic-core` is the open-source core toolkit for Simuletic synthetic-to-real computer vision workflows.
 
-The goal is to help teams understand whether models trained on synthetic data actually generalize to real-world production conditions.
+Simuletic Core helps you train, evaluate, benchmark, and run computer vision models with synthetic and real-world datasets. Its niche is synthetic-to-real object detection:
 
-The first focus is **object detection**, with future support for segmentation, pose estimation, classification, and video analytics workflows.
+* train on synthetic data
+* validate on synthetic data
+* evaluate on real-world data
+* measure synthetic-to-real performance gaps
+* measure false positives on hard negatives
+* run inference on new images
 
-> Synthetic data is only useful if it improves real-world model performance.
+The repository does **not** build custom model architectures from scratch. It wraps and orchestrates existing open-source model pipelines.
 
-## Why Simuletic Core?
+## Naming
 
-Computer vision models often fail in production because they have not seen enough rare edge cases, hard negatives, degraded camera footage, unusual perspectives, or real-world visual noise.
+* GitHub repository: `simuletic-core`
+* Python package/distribution: `simuletic-core`
+* CLI command: `simuletic-core`
+* Python import package: `simuletic_core`
 
-Synthetic data can help, but only if it improves real-world model performance.
+Python imports cannot contain hyphens, so import the package with an underscore:
 
-Simuletic Core is built around this workflow:
-
-```text
-synthetic training data
-        ↓
-model training
-        ↓
-synthetic validation
-        ↓
-real-world evaluation
-        ↓
-synthetic-to-real gap analysis
-        ↓
-inference and deployment support
+```python
+import simuletic_core
 ```
-
-The key question is not:
-
-> Can we train a model?
-
-The key question is:
-
-> Does synthetic data improve performance on real-world data?
-
-## Project focus
-
-Simuletic Core focuses on production-oriented computer vision workflows for domains such as:
-
-* CCTV and video surveillance
-* security and incident analytics
-* edge-case detection
-* hard-negative evaluation
-* false-positive reduction
-* robotics
-* physical AI
-* safety-critical visual AI systems
-
-The first planned training backend is an open-source object detection model pipeline, likely based on **RT-DETR** or a similar permissively licensed detection framework. Simuletic Core will not create new model architectures from scratch. Instead, it will provide a structured workflow around existing open-source model pipelines.
-
-Heavy ML dependencies will be optional integrations, not required by the lightweight core package.
 
 ## Current status
 
-This repository is early and intentionally lightweight.
+Implemented:
 
-Implemented today:
+* config schema
+* config validation
+* dataset validation
+* RF-DETR backend foundation
+* CLI commands for train/evaluate/infer through RF-DETR
 
-* Distribution package name: `simuletic-core`
-* Python import packages: `simuletic` and compatibility package `simuletic_core`
-* CLI commands: `simuletic` and `simuletic-core`
-* Version command: `simuletic version`
-* YAML experiment config schema
-* Config loading with Pydantic validation
-* Config validation CLI
-* Lightweight dataset validation for config-defined datasets
-* Basic tests, linting, typing configuration, and GitHub Actions CI
+Planned / still evolving:
 
-Planned next:
-
-* actual model training
-* actual evaluation metrics
-* RT-DETR backend integration
-* inference pipeline
-* benchmark reports
-* API clients
-* optional ML framework integrations
+* robust synthetic-to-real metric reporting
+* full benchmark reports
+* video inference
+* additional backends
+* hosted Simuletic API integration
 
 ## Installation
 
@@ -89,13 +52,7 @@ Install with pip:
 pip install simuletic-core
 ```
 
-Or install into an environment with uv:
-
-```bash
-uv pip install simuletic-core
-```
-
-Or add it to a uv-managed project:
+Add it to a uv-managed project:
 
 ```bash
 uv add simuletic-core
@@ -113,30 +70,26 @@ or:
 uv pip install -e ".[dev]"
 ```
 
+The first real backend is RF-DETR via the `rfdetr` Python package. RF-DETR weights may be downloaded when RF-DETR is first used for training or inference. Basic commands such as `simuletic-core version` and `simuletic-core config validate ...` should not download model weights.
+
 ## Quickstart
-
-Import the package in Python:
-
-```python
-import simuletic
-```
 
 Check that the CLI is installed:
 
 ```bash
-simuletic version
+simuletic-core version
 ```
 
 Validate the included example experiment config:
 
 ```bash
-simuletic config validate examples/configs/cctv_weapon_detection.yaml
+simuletic-core config validate examples/configs/cctv_weapon_detection.yaml
 ```
 
 Validate datasets referenced by the example experiment config:
 
 ```bash
-simuletic dataset validate --config examples/configs/cctv_weapon_detection.yaml
+simuletic-core dataset validate --config examples/configs/cctv_weapon_detection.yaml
 ```
 
 Run the test suite and checks:
@@ -147,9 +100,31 @@ ruff check .
 mypy src
 ```
 
+Tests do not run full RF-DETR training, do not download model weights, and do not require a GPU.
+
+## First RF-DETR workflow
+
+```bash
+pip install -e .
+simuletic-core version
+simuletic-core config validate examples/configs/cctv_weapon_detection.yaml
+simuletic-core dataset validate --config examples/configs/cctv_weapon_detection.yaml
+simuletic-core train --config examples/configs/cctv_weapon_detection.yaml
+simuletic-core evaluate --config examples/configs/cctv_weapon_detection.yaml
+simuletic-core infer --config examples/configs/cctv_weapon_detection.yaml --source ./images --output ./runs/inference
+```
+
+Notes:
+
+* RF-DETR model weights may be downloaded when you first run RF-DETR training or inference.
+* `simuletic-core version` and config validation are intentionally lightweight and do not import RF-DETR.
+* The current inference path supports a single image or image directory and writes `predictions.json`.
+* Video inference is planned but not implemented yet.
+* Standalone real-world evaluation is intentionally explicit: RF-DETR training writes validation artifacts, but Simuletic's full real-world, hard-negative, and synthetic-to-real reports are still evolving.
+
 ## Experiment configs
 
-Simuletic Core uses YAML configs for reproducible experiments. A config describes the synthetic training data, synthetic validation data, real-world test data, hard negatives, model backend settings, and requested metrics for a synthetic-to-real workflow.
+Simuletic Core uses YAML configs for reproducible experiments. A config describes synthetic training data, synthetic validation data, real-world test data, hard negatives, model backend settings, and requested metrics.
 
 The first example config is available at [`examples/configs/cctv_weapon_detection.yaml`](examples/configs/cctv_weapon_detection.yaml). It is generic and public-safe; it does not include private datasets, customer data, model weights, API keys, or proprietary generation workflows.
 
@@ -158,7 +133,7 @@ Example:
 ```yaml
 project_name: cctv-weapon-detection
 task: detection
-backend: rtdetr
+backend: rfdetr
 
 datasets:
   synthetic_train:
@@ -178,9 +153,13 @@ datasets:
     format: yolo
 
 model:
-  architecture: rtdetr
+  architecture: rfdetr
+  variant: base
   pretrained: true
   output_dir: ./runs/cctv-weapon-detection
+  epochs: 1
+  batch_size: 2
+  learning_rate: 0.0001
 
 evaluation:
   metrics:
@@ -196,44 +175,45 @@ seed: 42
 Validate a config with:
 
 ```bash
-simuletic config validate examples/configs/cctv_weapon_detection.yaml
+simuletic-core config validate examples/configs/cctv_weapon_detection.yaml
 ```
 
 The validation command only loads and validates the YAML schema. It does **not** train, evaluate, run inference, download models, or invoke heavy ML frameworks.
 
 ## Dataset validation
 
-Simuletic Core can also validate datasets referenced by an experiment config before training or evaluation work begins:
+Simuletic Core can validate datasets referenced by an experiment config before training or evaluation work begins:
 
 ```bash
-simuletic dataset validate --config examples/configs/cctv_weapon_detection.yaml
+simuletic-core dataset validate --config examples/configs/cctv_weapon_detection.yaml
 ```
-
-The dataset validation command loads the config, checks each configured dataset, prints a Rich summary with pass/fail status, and exits with a non-zero status if any dataset has blocking errors. The included example config intentionally points at local `./data/...` paths that are not required to exist in this repository, so running the command without creating those datasets will fail clearly.
 
 Currently implemented:
 
-* config validation
 * lightweight dataset validation
 * YOLO object detection dataset checks for `images/` and `labels/` layouts, including split subdirectories such as `images/train`, `images/val`, `labels/train`, and `labels/val`
 * supported image extensions: `.jpg`, `.jpeg`, `.png`, and `.webp`
 * rough YOLO label-line checks for `class_id x_center y_center width height` numeric values
 
-Planned:
-
-* actual training
-* evaluation metrics
-* RT-DETR backend
-* inference pipeline
-
-Dataset validation does **not** download datasets, inspect images with OpenCV or PIL, download models, or invoke heavy ML frameworks.
+RF-DETR itself expects a trainable dataset root in COCO or YOLO format. For YOLO training, provide a root with `data.yaml` or `data.yml` and `train/images/`. For COCO training, provide a root with `train/_annotations.coco.json`.
 
 Supported schema values:
 
 * Tasks: `detection`, `classification`, `segmentation`, `pose`
 * Dataset formats: `yolo`, `coco`, `imagefolder`, `csv`, `custom`
-* Backends: `rtdetr`, `custom`
+* Backends: `rfdetr`, `custom`
 * Metrics: `precision`, `recall`, `map50`, `map`, `false_positive_rate`, `synthetic_to_real_gap`
+
+## RF-DETR backend
+
+The RF-DETR backend lazily imports `rfdetr` only inside backend operations. It uses RF-DETR's high-level Python API:
+
+* model classes such as `RFDETRBase`, `RFDETRSmall`, and `RFDETRMedium`
+* `model.train(dataset_dir=..., epochs=..., batch_size=..., grad_accum_steps=..., lr=..., output_dir=...)`
+* `model.predict(image, threshold=...)` for image inference
+* `RFDETR.from_checkpoint(...)` when `model.checkpoint` is configured
+
+Inference writes a simple `predictions.json` file with source paths, class IDs or names when available, confidence scores, and `xyxy` bounding boxes.
 
 ## What this repository is not
 
@@ -249,66 +229,3 @@ This public repository does not include:
 * internal ComfyUI workflows
 
 The public repo provides tooling and interfaces. Proprietary generation pipelines and hosted services remain separate.
-
-## Roadmap
-
-### Phase 1 — Foundation
-
-* Package skeleton
-* CLI foundation
-* tests
-* CI
-
-### Phase 2 — Experiment configs
-
-* YAML config schema
-* typed validation
-* example configs
-* CLI config validation
-
-### Phase 3 — Dataset validation
-
-* YOLO dataset checks
-* COCO dataset checks
-* class consistency checks
-* split validation
-
-### Phase 4 — Evaluation results
-
-* standard result models
-* metric summaries
-* JSON reports
-* Markdown reports
-
-### Phase 5 — First training backend
-
-* object detection backend adapter
-* likely RT-DETR or similar open-source detector
-* synthetic training workflow
-* real-world evaluation workflow
-
-### Phase 6 — Inference
-
-* image inference
-* batch inference
-* prediction export
-* optional annotated outputs
-
-### Phase 7 — Synthetic-to-real benchmarking
-
-* synthetic validation vs real-world test comparison
-* domain gap metrics
-* hard-negative false positive analysis
-
-### Phase 8 — Simuletic hosted integration
-
-* optional hosted API integration
-* dataset generation requests
-* job tracking
-* dataset download/export
-
-## About Simuletic
-
-Simuletic builds tools and datasets for synthetic-to-real computer vision, starting with CCTV/security edge cases and expanding toward robotics and physical AI.
-
-Website: https://simuletic.com

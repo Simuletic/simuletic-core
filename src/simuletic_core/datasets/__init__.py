@@ -1,6 +1,6 @@
 """Dataset validation helpers for Simuletic."""
 
-from simuletic.datasets.validation import (
+from simuletic_core.datasets.validation import (
     DatasetIssue,
     DatasetValidationResult,
     validate_config_datasets,

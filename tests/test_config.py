@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from simuletic.config import (
+from simuletic_core.config import (
     ConfigFileNotFoundError,
     ConfigValidationError,
     ConfigYamlError,
@@ -13,7 +13,7 @@ from simuletic.config import (
 VALID_CONFIG = """
 project_name: cctv-weapon-detection
 task: detection
-backend: rtdetr
+backend: rfdetr
 
 datasets:
   synthetic_train:
@@ -30,9 +30,13 @@ datasets:
     format: yolo
 
 model:
-  architecture: rtdetr
+  architecture: rfdetr
+  variant: base
   pretrained: true
   output_dir: ./runs/cctv-weapon-detection
+  epochs: 1
+  batch_size: 2
+  learning_rate: 0.0001
 
 evaluation:
   metrics:
@@ -58,7 +62,7 @@ def test_load_config_loads_valid_config(tmp_path: Path) -> None:
     assert isinstance(config, ExperimentConfig)
     assert config.project_name == "cctv-weapon-detection"
     assert config.task == "detection"
-    assert config.backend == "rtdetr"
+    assert config.backend == "rfdetr"
     assert list(config.datasets) == [
         "synthetic_train",
         "synthetic_val",
@@ -67,6 +71,10 @@ def test_load_config_loads_valid_config(tmp_path: Path) -> None:
     ]
     assert config.datasets["synthetic_train"].format == "yolo"
     assert config.model.pretrained is True
+    assert config.model.variant == "base"
+    assert config.model.epochs == 1
+    assert config.model.batch_size == 2
+    assert config.model.learning_rate == 0.0001
     assert config.evaluation.metrics[-1] == "synthetic_to_real_gap"
     assert config.seed == 42
 
