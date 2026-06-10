@@ -10,7 +10,9 @@ from simuletic_vision.config import DatasetConfig, ExperimentConfig
 
 IssueSeverity = Literal["error", "warning"]
 
-SUPPORTED_IMAGE_EXTENSIONS = frozenset({".jpg", ".jpeg", ".png", ".webp"})
+SUPPORTED_IMAGE_EXTENSIONS = frozenset(
+    {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
+)
 CONFIG_DATASET_KEYS = (
     "synthetic_train",
     "synthetic_val",
@@ -113,7 +115,7 @@ def validate_generic_dataset(
 def validate_yolo_dataset(
     dataset_key: str, dataset_path: Path, dataset_format: str = "yolo"
 ) -> DatasetValidationResult:
-    """Validate a lightweight YOLO object detection dataset structure."""
+    """Validate common YOLO object detection dataset structures."""
 
     issues: list[DatasetIssue] = []
     image_count: int | None = None
@@ -155,54 +157,74 @@ def validate_yolo_dataset(
             label_file_count=label_file_count,
         )
 
-    images_dir = dataset_path / "images"
-    labels_dir = dataset_path / "labels"
+    layout = _detect_yolo_layout(dataset_path)
+    if layout is None:
+        issues.extend(
+            [
+                DatasetIssue(
+                    message=(
+                        "YOLO images directory is missing. Expected either "
+                        "train/images plus valid/images, images/train, or images/."
+                    ),
+                    severity="error",
+                    path=dataset_path,
+                ),
+                DatasetIssue(
+                    message=(
+                        "YOLO labels directory is missing. Expected either "
+                        "train/labels plus valid/labels, labels/train, or labels/."
+                    ),
+                    severity="error",
+                    path=dataset_path,
+                ),
+            ]
+        )
+        return DatasetValidationResult(
+            dataset_key=dataset_key,
+            dataset_path=dataset_path,
+            dataset_format=dataset_format,
+            passed=False,
+            issues=issues,
+            image_count=image_count,
+            label_file_count=label_file_count,
+        )
 
-    if not images_dir.is_dir():
+    image_dirs, label_dirs = layout
+    image_paths = _find_image_files_in_dirs(image_dirs)
+    label_paths = _find_label_files_in_dirs(label_dirs)
+    image_count = len(image_paths)
+    label_file_count = len(label_paths)
+
+    if not image_paths:
         issues.append(
             DatasetIssue(
-                message="YOLO images directory is missing.",
+                message="No supported image files found in YOLO images directories.",
                 severity="error",
-                path=images_dir,
+                path=dataset_path,
             )
         )
-    if not labels_dir.is_dir():
+    if not label_paths:
         issues.append(
             DatasetIssue(
-                message="YOLO labels directory is missing.",
+                message="No label files found in YOLO labels directories.",
                 severity="error",
-                path=labels_dir,
+                path=dataset_path,
             )
         )
+    else:
+        issues.extend(_validate_yolo_label_files(label_paths))
 
-    image_paths: list[Path] = []
-    label_paths: list[Path] = []
-
-    if images_dir.is_dir():
-        image_paths = _find_image_files(images_dir)
-        image_count = len(image_paths)
-        if not image_paths:
-            issues.append(
-                DatasetIssue(
-                    message="No supported image files found in YOLO images directory.",
-                    severity="error",
-                    path=images_dir,
-                )
+    if _is_rfdetr_yolo_layout(dataset_path) and not _has_yolo_data_file(dataset_path):
+        issues.append(
+            DatasetIssue(
+                message=(
+                    "RF-DETR YOLO training expects data.yaml or data.yml at the "
+                    "dataset root."
+                ),
+                severity="warning",
+                path=dataset_path,
             )
-
-    if labels_dir.is_dir():
-        label_paths = _find_label_files(labels_dir)
-        label_file_count = len(label_paths)
-        if not label_paths:
-            issues.append(
-                DatasetIssue(
-                    message="No label files found in YOLO labels directory.",
-                    severity="error",
-                    path=labels_dir,
-                )
-            )
-        else:
-            issues.extend(_validate_yolo_label_files(label_paths))
+        )
 
     return DatasetValidationResult(
         dataset_key=dataset_key,
@@ -215,6 +237,51 @@ def validate_yolo_dataset(
     )
 
 
+def _detect_yolo_layout(dataset_path: Path) -> tuple[list[Path], list[Path]] | None:
+    """Return image/label directories for supported YOLO layouts."""
+
+    rfdetr_splits = [
+        split
+        for split in ("train", "valid", "val", "test")
+        if (dataset_path / split / "images").is_dir()
+        and (dataset_path / split / "labels").is_dir()
+    ]
+    if rfdetr_splits:
+        return (
+            [dataset_path / split / "images" for split in rfdetr_splits],
+            [dataset_path / split / "labels" for split in rfdetr_splits],
+        )
+
+    split_names = [
+        split
+        for split in ("train", "valid", "val", "test")
+        if (dataset_path / "images" / split).is_dir()
+        and (dataset_path / "labels" / split).is_dir()
+    ]
+    if split_names:
+        return (
+            [dataset_path / "images" / split for split in split_names],
+            [dataset_path / "labels" / split for split in split_names],
+        )
+
+    images_dir = dataset_path / "images"
+    labels_dir = dataset_path / "labels"
+    if images_dir.is_dir() and labels_dir.is_dir():
+        return [images_dir], [labels_dir]
+
+    return None
+
+
+def _is_rfdetr_yolo_layout(dataset_path: Path) -> bool:
+    return (dataset_path / "train" / "images").is_dir()
+
+
+def _has_yolo_data_file(dataset_path: Path) -> bool:
+    return (dataset_path / "data.yaml").is_file() or (
+        dataset_path / "data.yml"
+    ).is_file()
+
+
 def _find_image_files(images_dir: Path) -> list[Path]:
     return sorted(
         path
@@ -223,8 +290,20 @@ def _find_image_files(images_dir: Path) -> list[Path]:
     )
 
 
+def _find_image_files_in_dirs(image_dirs: list[Path]) -> list[Path]:
+    return sorted(
+        path for images_dir in image_dirs for path in _find_image_files(images_dir)
+    )
+
+
 def _find_label_files(labels_dir: Path) -> list[Path]:
     return sorted(path for path in labels_dir.rglob("*.txt") if path.is_file())
+
+
+def _find_label_files_in_dirs(label_dirs: list[Path]) -> list[Path]:
+    return sorted(
+        path for labels_dir in label_dirs for path in _find_label_files(labels_dir)
+    )
 
 
 def _validate_yolo_label_files(label_paths: list[Path]) -> list[DatasetIssue]:

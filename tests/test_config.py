@@ -17,16 +17,13 @@ backend: rfdetr
 
 datasets:
   synthetic_train:
-    path: ./data/synthetic/train
+    path: ./data/cctv-weapon-dataset
     format: yolo
   synthetic_val:
-    path: ./data/synthetic/val
+    path: ./data/cctv-weapon-dataset
     format: yolo
   real_world_test:
-    path: ./data/real_world/test
-    format: yolo
-  hard_negatives:
-    path: ./data/hard_negatives
+    path: ./data/cctv-weapon-dataset
     format: yolo
 
 model:
@@ -34,21 +31,20 @@ model:
   variant: base
   pretrained: true
   output_dir: ./runs/cctv-weapon-detection
+  checkpoint: null
   epochs: 1
   batch_size: 2
   learning_rate: 0.0001
+  confidence_threshold: 0.25
 
 evaluation:
   metrics:
+    - map50
     - precision
     - recall
-    - map50
-    - false_positive_rate
-    - synthetic_to_real_gap
 
 seed: 42
 """
-
 
 def write_config(tmp_path: Path, content: str) -> Path:
     config_path = tmp_path / "experiment.yaml"
@@ -67,7 +63,6 @@ def test_load_config_loads_valid_config(tmp_path: Path) -> None:
         "synthetic_train",
         "synthetic_val",
         "real_world_test",
-        "hard_negatives",
     ]
     assert config.datasets["synthetic_train"].format == "yolo"
     assert config.model.pretrained is True
@@ -75,7 +70,9 @@ def test_load_config_loads_valid_config(tmp_path: Path) -> None:
     assert config.model.epochs == 1
     assert config.model.batch_size == 2
     assert config.model.learning_rate == 0.0001
-    assert config.evaluation.metrics[-1] == "synthetic_to_real_gap"
+    assert config.model.checkpoint is None
+    assert config.model.confidence_threshold == 0.25
+    assert config.evaluation.metrics == ["map50", "precision", "recall"]
     assert config.seed == 42
 
 

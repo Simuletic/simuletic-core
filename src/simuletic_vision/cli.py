@@ -1,4 +1,4 @@
-"""Command-line interface for Simuletic."""
+"""Command-line interface for Simuletic Vision."""
 
 from __future__ import annotations
 
@@ -101,10 +101,15 @@ def train_command(
 ) -> None:
     """Train or fine-tune a model with the configured backend."""
     experiment_config = _load_experiment_config(config)
+    _ensure_configured_datasets_exist(experiment_config)
     console.print(f"Starting training with backend: {experiment_config.backend}")
     console.print(f"Output directory: {experiment_config.model.output_dir}")
     _run_backend_command(experiment_config, "train")
     console.print("[green]Training command completed.[/green]")
+    console.print(
+        "Next: run `simuletic-vision evaluate --config "
+        f"{config}` or set model.checkpoint to a trained checkpoint."
+    )
 
 
 @app.command("evaluate")
@@ -120,6 +125,7 @@ def evaluate_command(
 ) -> None:
     """Evaluate a model with the configured backend."""
     experiment_config = _load_experiment_config(config)
+    _ensure_configured_datasets_exist(experiment_config)
     console.print(f"Starting evaluation with backend: {experiment_config.backend}")
     _run_backend_command(experiment_config, "evaluate")
     console.print("[green]Evaluation command completed.[/green]")
@@ -170,6 +176,20 @@ def _load_experiment_config(config_path: Path) -> ExperimentConfig:
     except (ConfigLoadError, FileNotFoundError) as exc:
         console.print(f"[red]Invalid config:[/red] {exc}")
         raise typer.Exit(code=1) from exc
+
+
+def _ensure_configured_datasets_exist(experiment_config: ExperimentConfig) -> None:
+    missing_paths = [
+        dataset.path
+        for dataset in experiment_config.datasets.values()
+        if not dataset.path.expanduser().exists()
+    ]
+    if missing_paths:
+        console.print(
+            "[red]Dataset path does not exist:[/red] "
+            + ", ".join(str(path) for path in missing_paths)
+        )
+        raise typer.Exit(code=1)
 
 
 def get_backend(experiment_config: ExperimentConfig) -> Backend:

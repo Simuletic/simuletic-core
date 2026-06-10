@@ -75,6 +75,29 @@ def test_valid_yolo_split_layout(tmp_path: Path) -> None:
     assert result.issues == []
 
 
+def test_valid_rfdetr_yolo_dataset_layout(tmp_path: Path) -> None:
+    dataset_path = tmp_path / "dataset"
+    for split in ("train", "valid", "test"):
+        images_dir = dataset_path / split / "images"
+        labels_dir = dataset_path / split / "labels"
+        images_dir.mkdir(parents=True)
+        labels_dir.mkdir(parents=True)
+        (images_dir / f"{split}.jpg").write_bytes(b"fake image")
+        (labels_dir / f"{split}.txt").write_text(
+            "0 0.5 0.5 0.25 0.25\n", encoding="utf-8"
+        )
+    (dataset_path / "data.yaml").write_text("names: [weapon]\n", encoding="utf-8")
+
+    result = validate_dataset(
+        "synthetic_train", DatasetConfig(path=dataset_path, format="yolo")
+    )
+
+    assert result.passed is True
+    assert result.image_count == 3
+    assert result.label_file_count == 3
+    assert result.issues == []
+
+
 def test_missing_dataset_path(tmp_path: Path) -> None:
     dataset_path = tmp_path / "does-not-exist"
 
@@ -103,7 +126,7 @@ def test_missing_images_directory(tmp_path: Path) -> None:
 
     assert result.passed is False
     assert result.image_count is None
-    assert result.label_file_count == 1
+    assert result.label_file_count is None
     assert any(
         "images directory is missing" in issue.message for issue in result.issues
     )
@@ -119,7 +142,7 @@ def test_missing_labels_directory(tmp_path: Path) -> None:
     )
 
     assert result.passed is False
-    assert result.image_count == 1
+    assert result.image_count is None
     assert result.label_file_count is None
     assert any(
         "labels directory is missing" in issue.message for issue in result.issues
