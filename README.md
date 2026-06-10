@@ -6,20 +6,50 @@ The project intentionally keeps the first implementation simple: validate a loca
 
 ## Install
 
-```bash
-pip install -e .
-```
-
-For development:
+Install the published Python distribution named `simuletic-vision` from your package index:
 
 ```bash
-pip install -e '.[dev]'
+pip install simuletic-vision
 ```
+
+Or with uv:
+
+```bash
+uv pip install simuletic-vision
+```
+
+If you are installing from a local clone before the distribution is published, run the normal non-editable install from the repository root:
+
+```bash
+pip install .
+```
+
+Or with uv:
+
+```bash
+uv pip install .
+```
+
+For Python code, import the package as `simuletic_vision`. After installation, run the CLI as `simuletic-vision`.
 
 RF-DETR training may require the optional training dependencies documented by RF-DETR. If training dependencies are missing, install them in your environment before running a real training job:
 
 ```bash
 pip install 'rfdetr[train,loggers]'
+```
+
+### Development and contributor installs
+
+Use editable installs when you are actively developing the project or contributing changes:
+
+```bash
+pip install -e '.[dev]'
+```
+
+Or with uv:
+
+```bash
+uv pip install -e '.[dev]'
 ```
 
 ## Naming
