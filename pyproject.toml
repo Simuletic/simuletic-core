@@ -35,7 +35,7 @@ dependencies = [
   "pydantic>=2",
   "pyyaml>=6",
   "rich>=13.7",
-  "rfdetr[train,loggers]>=1.2",
+  "rfdetr>=1.2",
   "typer>=0.12",
 ]
 
@@ -44,6 +44,7 @@ dev = [
   "mypy>=1.10",
   "pytest>=8.2",
   "ruff>=0.5",
+  "tomli>=2; python_version < '3.11'",
 ]
 
 [project.scripts]

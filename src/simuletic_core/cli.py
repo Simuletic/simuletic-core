@@ -12,6 +12,7 @@ from rich.table import Table
 from simuletic_core import __version__
 
 if TYPE_CHECKING:
+    from simuletic_core.backends import Backend
     from simuletic_core.config import ExperimentConfig
     from simuletic_core.datasets import DatasetValidationResult
 
@@ -171,13 +172,21 @@ def _load_experiment_config(config_path: Path) -> ExperimentConfig:
         raise typer.Exit(code=1) from exc
 
 
+def get_backend(experiment_config: ExperimentConfig) -> Backend:
+    """Return the configured backend without importing backend modules at CLI import."""
+
+    from simuletic_core.backends import get_backend as load_backend
+
+    return load_backend(experiment_config)
+
+
 def _run_backend_command(
     experiment_config: ExperimentConfig,
     command: str,
     source: Path | None = None,
     output: Path | None = None,
 ) -> None:
-    from simuletic_core.backends import BackendError, get_backend
+    from simuletic_core.backends import BackendError
 
     try:
         backend = get_backend(experiment_config)
