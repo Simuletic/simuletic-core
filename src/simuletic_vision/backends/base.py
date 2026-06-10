@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Protocol
 
-from simuletic_core.config import ExperimentConfig
+from simuletic_vision.config import ExperimentConfig
 
 
 class BackendError(RuntimeError):

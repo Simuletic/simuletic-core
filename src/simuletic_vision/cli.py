@@ -9,16 +9,16 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from simuletic_core import __version__
+from simuletic_vision import __version__
 
 if TYPE_CHECKING:
-    from simuletic_core.backends import Backend
-    from simuletic_core.config import ExperimentConfig
-    from simuletic_core.datasets import DatasetValidationResult
+    from simuletic_vision.backends import Backend
+    from simuletic_vision.config import ExperimentConfig
+    from simuletic_vision.datasets import DatasetValidationResult
 
 app = typer.Typer(
     add_completion=False,
-    help="Simuletic core toolkit for synthetic-to-real computer vision workflows.",
+    help="Simuletic Vision toolkit for synthetic-to-real computer vision workflows.",
     no_args_is_help=True,
 )
 config_app = typer.Typer(help="Inspect and validate experiment configuration files.")
@@ -37,14 +37,14 @@ def main() -> None:
 
 @app.command("version")
 def version_command() -> None:
-    """Print the installed simuletic-core package version."""
+    """Print the installed simuletic-vision package version."""
     console.print(__version__)
 
 
 @config_app.command("validate")
 def validate_config_command(path: Path) -> None:
     """Validate a Simuletic experiment YAML configuration file."""
-    from simuletic_core.config import ConfigLoadError, load_config
+    from simuletic_vision.config import ConfigLoadError, load_config
 
     try:
         config = load_config(path)
@@ -72,8 +72,8 @@ def validate_dataset_command(
     ],
 ) -> None:
     """Validate datasets referenced by a Simuletic experiment config."""
-    from simuletic_core.config import ConfigLoadError, load_config
-    from simuletic_core.datasets import validate_config_datasets
+    from simuletic_vision.config import ConfigLoadError, load_config
+    from simuletic_vision.datasets import validate_config_datasets
 
     try:
         experiment_config = load_config(config)
@@ -163,7 +163,7 @@ def infer_command(
 
 
 def _load_experiment_config(config_path: Path) -> ExperimentConfig:
-    from simuletic_core.config import ConfigLoadError, load_config
+    from simuletic_vision.config import ConfigLoadError, load_config
 
     try:
         return load_config(config_path)
@@ -175,7 +175,7 @@ def _load_experiment_config(config_path: Path) -> ExperimentConfig:
 def get_backend(experiment_config: ExperimentConfig) -> Backend:
     """Return the configured backend without importing backend modules at CLI import."""
 
-    from simuletic_core.backends import get_backend as load_backend
+    from simuletic_vision.backends import get_backend as load_backend
 
     return load_backend(experiment_config)
 
@@ -186,7 +186,7 @@ def _run_backend_command(
     source: Path | None = None,
     output: Path | None = None,
 ) -> None:
-    from simuletic_core.backends import BackendError
+    from simuletic_vision.backends import BackendError
 
     try:
         backend = get_backend(experiment_config)

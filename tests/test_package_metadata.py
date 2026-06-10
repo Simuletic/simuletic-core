@@ -9,16 +9,16 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
 def test_pyproject_uses_correct_distribution_package_and_cli_names() -> None:
     pyproject = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
 
-    assert pyproject["project"]["name"] == "simuletic-core"
+    assert pyproject["project"]["name"] == "simuletic-vision"
     assert "rfdetr>=1.2" in pyproject["project"]["dependencies"]
     assert pyproject["project"]["scripts"] == {
-        "simuletic-core": "simuletic_core.cli:app"
+        "simuletic-vision": "simuletic_vision.cli:app"
     }
     assert pyproject["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == [
-        "src/simuletic_core"
+        "src/simuletic_vision"
     ]
 
 
-def test_only_simuletic_core_source_package_exists() -> None:
-    assert Path("src/simuletic_core").is_dir()
+def test_only_simuletic_vision_source_package_exists() -> None:
+    assert Path("src/simuletic_vision").is_dir()
     assert not Path("src/simuletic").exists()

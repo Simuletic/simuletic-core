@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
-from simuletic_core.config import DatasetConfig, ExperimentConfig
+from simuletic_vision.config import DatasetConfig, ExperimentConfig
 
 IssueSeverity = Literal["error", "warning"]
 

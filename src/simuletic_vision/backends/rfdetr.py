@@ -11,8 +11,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from simuletic_core.backends.base import BackendError
-from simuletic_core.config import DatasetConfig, ExperimentConfig
+from simuletic_vision.backends.base import BackendError
+from simuletic_vision.config import DatasetConfig, ExperimentConfig
 
 IMAGE_EXTENSIONS = frozenset(
     {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
@@ -61,7 +61,7 @@ class RFDETRBackend:
         self._ensure_rfdetr_config(config)
         self._required_dataset(config, "real_world_test")
         raise BackendError(
-            "RF-DETR standalone evaluation is not implemented yet in Simuletic Core. "
+            "RF-DETR standalone evaluation is not implemented yet in Simuletic Vision. "
             "RF-DETR training writes validation artifacts to model.output_dir, but "
             "Simuletic's real-world test metrics, hard-negative false-positive "
             "metrics, and synthetic-to-real gap report still need a dedicated "
@@ -79,7 +79,7 @@ class RFDETRBackend:
             raise BackendError(f"Inference source does not exist: {source}")
         if source.is_file() and source.suffix.lower() in VIDEO_EXTENSIONS:
             raise BackendError(
-                "RF-DETR video inference is not implemented in Simuletic Core yet. "
+                "RF-DETR video inference is not implemented in Simuletic Vision yet. "
                 "Use a single image file or a directory of images for now."
             )
 
@@ -147,7 +147,7 @@ class RFDETRBackend:
         except ModuleNotFoundError as exc:
             raise BackendError(
                 "The RF-DETR backend requires the 'rfdetr' package. Install "
-                "simuletic-core with its runtime dependencies, or run "
+                "simuletic-vision with its runtime dependencies, or run "
                 "`pip install rfdetr`."
             ) from exc
         return rfdetr

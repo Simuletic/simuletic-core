@@ -1,10 +1,10 @@
-"""Simuletic Core public Python package."""
+"""Simuletic Vision public Python package."""
 
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
 try:
-    __version__ = version("simuletic-core")
+    __version__ = version("simuletic-vision")
 except PackageNotFoundError:
     __version__ = "0.0.0"
 
@@ -37,11 +37,11 @@ def __getattr__(name: str) -> Any:
     """Lazily expose public helpers without importing optional-heavy modules."""
 
     if name in _CONFIG_EXPORTS:
-        from simuletic_core import config
+        from simuletic_vision import config
 
         return getattr(config, name)
     if name in _DATASET_EXPORTS:
-        from simuletic_core import datasets
+        from simuletic_vision import datasets
 
         return getattr(datasets, name)
-    raise AttributeError(f"module 'simuletic_core' has no attribute {name!r}")
+    raise AttributeError(f"module 'simuletic_vision' has no attribute {name!r}")
