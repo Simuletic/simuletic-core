@@ -1,6 +1,6 @@
 project_name: cctv-weapon-detection
 task: detection
-backend: rtdetr
+backend: rfdetr
 
 datasets:
   synthetic_train:
@@ -20,9 +20,13 @@ datasets:
     format: yolo
 
 model:
-  architecture: rtdetr
+  architecture: rfdetr
+  variant: base
   pretrained: true
   output_dir: ./runs/cctv-weapon-detection
+  epochs: 1
+  batch_size: 2
+  learning_rate: 0.0001
 
 evaluation:
   metrics:

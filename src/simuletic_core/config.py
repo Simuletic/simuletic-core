@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from yaml import YAMLError
 
 TaskName = Literal["detection", "classification", "segmentation", "pose"]
-BackendName = Literal["rtdetr", "custom"]
+BackendName = Literal["rfdetr", "custom"]
 DatasetFormat = Literal["yolo", "coco", "imagefolder", "csv", "custom"]
 MetricName = Literal[
     "precision",
@@ -51,8 +51,15 @@ class ModelConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     architecture: BackendName
+    variant: str = "base"
     pretrained: bool = True
     output_dir: Path
+    epochs: int = Field(default=1, ge=1)
+    batch_size: int = Field(default=2, ge=1)
+    learning_rate: float = Field(default=0.0001, gt=0)
+    grad_accum_steps: int = Field(default=4, ge=1)
+    confidence_threshold: float = Field(default=0.5, ge=0, le=1)
+    checkpoint: Path | None = None
 
 
 class EvaluationConfig(BaseModel):

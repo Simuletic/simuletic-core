@@ -1,12 +1,12 @@
 from pathlib import Path
 
-from simuletic.config import (
+from simuletic_core.config import (
     DatasetConfig,
     EvaluationConfig,
     ExperimentConfig,
     ModelConfig,
 )
-from simuletic.datasets import validate_config_datasets, validate_dataset
+from simuletic_core.datasets import validate_config_datasets, validate_dataset
 
 
 def make_config(datasets: dict[str, DatasetConfig]) -> ExperimentConfig:
