@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from .base import Backend, BackendError
 
 if TYPE_CHECKING:
-    from simuletic_core.config import ExperimentConfig
+    from simuletic_vision.config import ExperimentConfig
 
 
 def get_backend(config: ExperimentConfig) -> Backend:

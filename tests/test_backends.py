@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from simuletic_core.backends import BackendError, get_backend
-from simuletic_core.backends.rfdetr import RFDETRBackend
-from simuletic_core.config import (
+from simuletic_vision.backends import BackendError, get_backend
+from simuletic_vision.backends.rfdetr import RFDETRBackend
+from simuletic_vision.config import (
     DatasetConfig,
     EvaluationConfig,
     ExperimentConfig,

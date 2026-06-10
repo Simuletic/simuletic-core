@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from simuletic_core.config import (
+from simuletic_vision.config import (
     ConfigFileNotFoundError,
     ConfigValidationError,
     ConfigYamlError,

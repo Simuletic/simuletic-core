@@ -1,4 +1,4 @@
-from simuletic_core import __version__
+from simuletic_vision import __version__
 
 
 def test_package_imports() -> None:

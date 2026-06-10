@@ -3,8 +3,8 @@ from typing import Any
 
 from typer.testing import CliRunner
 
-from simuletic_core import __version__
-from simuletic_core.cli import app
+from simuletic_vision import __version__
+from simuletic_vision.cli import app
 
 runner = CliRunner()
 
@@ -71,7 +71,7 @@ def test_dataset_validate_command_fails_clearly_for_missing_example_paths() -> N
 
 def test_train_command_calls_configured_backend(monkeypatch: Any) -> None:
     backend = RecordingBackend()
-    monkeypatch.setattr("simuletic_core.cli.get_backend", lambda config: backend)
+    monkeypatch.setattr("simuletic_vision.cli.get_backend", lambda config: backend)
 
     result = runner.invoke(
         app, ["train", "--config", "examples/configs/cctv_weapon_detection.yaml"]
@@ -84,7 +84,7 @@ def test_train_command_calls_configured_backend(monkeypatch: Any) -> None:
 
 def test_evaluate_command_calls_configured_backend(monkeypatch: Any) -> None:
     backend = RecordingBackend()
-    monkeypatch.setattr("simuletic_core.cli.get_backend", lambda config: backend)
+    monkeypatch.setattr("simuletic_vision.cli.get_backend", lambda config: backend)
 
     result = runner.invoke(
         app, ["evaluate", "--config", "examples/configs/cctv_weapon_detection.yaml"]
@@ -99,7 +99,7 @@ def test_infer_command_calls_configured_backend(
     monkeypatch: Any, tmp_path: Path
 ) -> None:
     backend = RecordingBackend()
-    monkeypatch.setattr("simuletic_core.cli.get_backend", lambda config: backend)
+    monkeypatch.setattr("simuletic_vision.cli.get_backend", lambda config: backend)
     source = tmp_path / "images"
     output = tmp_path / "runs"
 
