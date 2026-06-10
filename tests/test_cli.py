@@ -23,6 +23,51 @@ class RecordingBackend:
         self.calls.append(("infer", config, source, output))
 
 
+def write_existing_dataset_config(
+    tmp_path: Path, checkpoint: Path | None = None
+) -> Path:
+    dataset_path = tmp_path / "dataset"
+    dataset_path.mkdir()
+    checkpoint_line = (
+        f"  checkpoint: {checkpoint}\n" if checkpoint else "  checkpoint: null\n"
+    )
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        f"""
+project_name: cctv-weapon-detection
+task: detection
+backend: rfdetr
+datasets:
+  synthetic_train:
+    path: {dataset_path}
+    format: yolo
+  synthetic_val:
+    path: {dataset_path}
+    format: yolo
+  real_world_test:
+    path: {dataset_path}
+    format: yolo
+model:
+  architecture: rfdetr
+  variant: base
+  pretrained: true
+  output_dir: {tmp_path / "runs"}
+{checkpoint_line}  epochs: 1
+  batch_size: 2
+  learning_rate: 0.0001
+  confidence_threshold: 0.25
+evaluation:
+  metrics:
+    - map50
+    - precision
+    - recall
+seed: 42
+""",
+        encoding="utf-8",
+    )
+    return config_path
+
+
 def test_version_command_prints_package_version() -> None:
     result = runner.invoke(app, ["version"])
 
@@ -69,26 +114,56 @@ def test_dataset_validate_command_fails_clearly_for_missing_example_paths() -> N
     assert "synthetic_train" in result.stdout
 
 
-def test_train_command_calls_configured_backend(monkeypatch: Any) -> None:
+def test_train_command_calls_configured_backend(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
     backend = RecordingBackend()
     monkeypatch.setattr("simuletic_vision.cli.get_backend", lambda config: backend)
+    config_path = write_existing_dataset_config(tmp_path)
 
-    result = runner.invoke(
-        app, ["train", "--config", "examples/configs/cctv_weapon_detection.yaml"]
-    )
+    result = runner.invoke(app, ["train", "--config", str(config_path)])
 
     assert result.exit_code == 0
     assert backend.calls[0][0] == "train"
     assert "Starting training with backend: rfdetr" in result.stdout
+    assert "simuletic-vision evaluate" in result.stdout
 
 
-def test_evaluate_command_calls_configured_backend(monkeypatch: Any) -> None:
+def test_train_command_fails_clearly_for_missing_dataset_path(tmp_path: Path) -> None:
+    config_path = tmp_path / "missing.yaml"
+    config_path.write_text(
+        f"""
+project_name: missing-dataset
+task: detection
+backend: rfdetr
+datasets:
+  synthetic_train:
+    path: {tmp_path / "does-not-exist"}
+    format: yolo
+model:
+  architecture: rfdetr
+  output_dir: {tmp_path / "runs"}
+evaluation:
+  metrics:
+    - precision
+""",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["train", "--config", str(config_path)])
+
+    assert result.exit_code == 1
+    assert "Dataset path does not exist" in result.stdout
+
+
+def test_evaluate_command_calls_configured_backend(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
     backend = RecordingBackend()
     monkeypatch.setattr("simuletic_vision.cli.get_backend", lambda config: backend)
+    config_path = write_existing_dataset_config(tmp_path)
 
-    result = runner.invoke(
-        app, ["evaluate", "--config", "examples/configs/cctv_weapon_detection.yaml"]
-    )
+    result = runner.invoke(app, ["evaluate", "--config", str(config_path)])
 
     assert result.exit_code == 0
     assert backend.calls[0][0] == "evaluate"
@@ -100,6 +175,7 @@ def test_infer_command_calls_configured_backend(
 ) -> None:
     backend = RecordingBackend()
     monkeypatch.setattr("simuletic_vision.cli.get_backend", lambda config: backend)
+    config_path = write_existing_dataset_config(tmp_path)
     source = tmp_path / "images"
     output = tmp_path / "runs"
 
@@ -108,7 +184,7 @@ def test_infer_command_calls_configured_backend(
         [
             "infer",
             "--config",
-            "examples/configs/cctv_weapon_detection.yaml",
+            str(config_path),
             "--source",
             str(source),
             "--output",
@@ -124,19 +200,21 @@ def test_infer_command_calls_configured_backend(
 
 
 def test_custom_backend_command_fails_clearly(tmp_path: Path) -> None:
+    dataset_path = tmp_path / "dataset"
+    dataset_path.mkdir()
     custom_config = tmp_path / "custom.yaml"
     custom_config.write_text(
-        """
+        f"""
 project_name: custom-project
 task: detection
 backend: custom
 datasets:
   synthetic_train:
-    path: ./data/synthetic/train
+    path: {dataset_path}
     format: yolo
 model:
   architecture: custom
-  output_dir: ./runs/custom
+  output_dir: {tmp_path / "runs"}
 evaluation:
   metrics:
     - precision

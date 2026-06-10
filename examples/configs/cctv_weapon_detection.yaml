@@ -4,19 +4,15 @@ backend: rfdetr
 
 datasets:
   synthetic_train:
-    path: ./data/synthetic/train
+    path: ./data/cctv-weapon-dataset
     format: yolo
 
   synthetic_val:
-    path: ./data/synthetic/val
+    path: ./data/cctv-weapon-dataset
     format: yolo
 
   real_world_test:
-    path: ./data/real_world/test
-    format: yolo
-
-  hard_negatives:
-    path: ./data/hard_negatives
+    path: ./data/cctv-weapon-dataset
     format: yolo
 
 model:
@@ -24,16 +20,16 @@ model:
   variant: base
   pretrained: true
   output_dir: ./runs/cctv-weapon-detection
+  checkpoint: null
   epochs: 1
   batch_size: 2
   learning_rate: 0.0001
+  confidence_threshold: 0.25
 
 evaluation:
   metrics:
+    - map50
     - precision
     - recall
-    - map50
-    - false_positive_rate
-    - synthetic_to_real_gap
 
 seed: 42
